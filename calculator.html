@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .calculator-btn {
+            transition: all 0.2s ease;
+        }
+        .calculator-btn:active {
+            transform: scale(0.95);
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
+    <div class="w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden">
+        <!-- Display -->
+        <div class="p-4 bg-gray-800 text-right">
+            <div id="previous-operand" class="text-gray-400 text-lg h-6"></div>
+            <div id="current-operand" class="text-white text-4xl font-semibold truncate">0</div>
+        </div>
+
+        <!-- Buttons -->
+        <div class="grid grid-cols-4 gap-1 p-2 bg-gray-200">
+            <!-- Row 1 -->
+            <button data-action="clear" class="calculator-btn bg-red-500 hover:bg-red-600 text-white col-span-2 h-16 rounded-lg font-medium">
+                AC
+            </button>
+            <button data-action="delete" class="calculator-btn bg-gray-300 hover:bg-gray-400 h-16 rounded-lg font-medium">
+                DEL
+            </button>
+            <button data-operation="divide" class="calculator-btn bg-amber-500 hover:bg-amber-600 text-white h-16 rounded-lg font-medium">
+                ÷
+            </button>
+
+            <!-- Row 2 -->
+            <button data-number="7" class="calculator-btn bg-gray-300 hover:bg-gray-400 h-16 rounded-lg font-medium">
+                7
+            </button>
+            <button data-number="8" class="calculator-btn bg-gray-300 hover:bg-gray-400 h-16 rounded-lg font-medium">
+                8
+            </button>
+            <button data-number="9" class="calculator-btn bg-gray-300 hover:bg-gray-400 h-16 rounded-lg font-medium">
+                9
+            </button>
+            <button data-operation="multiply" class="calculator-btn bg-amber-500 hover:bg-amber-600 text-white h-16 rounded-lg font-medium">
+                ×
+            </button>
+
+            <!-- Row 3 -->
+            <button data-number="4" class="calculator-btn bg-gray-300 hover:bg-gray-400 h-16 rounded-lg font-medium">
+                4
+            </button>
+            <button data-number="5" class="calculator-btn bg-gray-300 hover:bg-gray-400 h-16 rounded-lg font-medium">
+                5
+            </button>
+            <button data-number="6" class="calculator-btn bg-gray-300 hover:bg-gray-400 h-16 rounded-lg font-medium">
+                6
+            </button>
+            <button data-operation="subtract" class="calculator-btn bg-amber-500 hover:bg-amber-600 text-white h-16 rounded-lg font-medium">
+                -
+            </button>
+
+            <!-- Row 4 -->
+            <button data-number="1" class="calculator-btn bg-gray-300 hover:bg-gray-400 h-16 rounded-lg font-medium">
+                1
+            </button>
+            <button data-number="2" class="calculator-btn bg-gray-300 hover:bg-gray-400 h-16 rounded-lg font-medium">
+                2
+            </button>
+            <button data-number="3" class="calculator-btn bg-gray-300 hover:bg-gray-400 h-16 rounded-lg font-medium">
+                3
+            </button>
+            <button data-operation="add" class="calculator-btn bg-amber-500 hover:bg-amber-600 text-white h-16 rounded-lg font-medium">
+                +
+            </button>
+
+            <!-- Row 5 -->
+            <button data-number="0" class="calculator-btn bg-gray-300 hover:bg-gray-400 h-16 rounded-lg font-medium col-span-2">
+                0
+            </button>
+            <button data-number="." class="calculator-btn bg-gray-300 hover:bg-gray-400 h-16 rounded-lg font-medium">
+                .
+            </button>
+            <button data-action="equals" class="calculator-btn bg-amber-500 hover:bg-amber-600 text-white h-16 rounded-lg font-medium">
+                =
+            </button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const calculator = new Calculator();
+            calculator.init();
+        });
+
+        class Calculator {
+            constructor() {
+                this.previousOperandElement = document.getElementById('previous-operand');
+                this.currentOperandElement = document.getElementById('current-operand');
+                this.clear();
+            }
+
+            init() {
+                // Button click handlers
+                document.querySelectorAll('[data-number]').forEach(button => {
+                    button.addEventListener('click', () => {
+                        this.appendNumber(button.dataset.number);
+                        this.updateDisplay();
+                    });
+                });
+
+                document.querySelectorAll('[data-operation]').forEach(button => {
+                    button.addEventListener('click', () => {
+                        this.chooseOperation(button.dataset.operation);
+                        this.updateDisplay();
+                    });
+                });
+
+                document.querySelector('[data-action="equals"]').addEventListener('click', () => {
+                    this.compute();
+                    this.updateDisplay();
+                });
+
+                document.querySelector('[data-action="clear"]').addEventListener('click', () => {
+                    this.clear();
+                    this.updateDisplay();
+                });
+
+                document.querySelector('[data-action="delete"]').addEventListener('click', () => {
+                    this.delete();
+                    this.updateDisplay();
+                });
+
+                // Keyboard support
+                document.addEventListener('keydown', (e) => {
+                    if (e.key >= '0' && e.key <= '9') {
+                        this.appendNumber(e.key);
+                        this.updateDisplay();
+                    } else if (e.key === '.') {
+                        this.appendNumber(e.key);
+                        this.updateDisplay();
+                    } else if (e.key === '+' || e.key === '-' || e.key === '*' || e.key === '/') {
+                        const operationMap = {
+                            '+': 'add',
+                            '-': 'subtract',
+                            '*': 'multiply',
+                            '/': 'divide'
+                        };
+                        this.chooseOperation(operationMap[e.key]);
+                        this.updateDisplay();
+                    } else if (e.key === 'Enter' || e.key === '=') {
+                        e.preventDefault();
+                        this.compute();
+                        this.updateDisplay();
+                    } else if (e.key === 'Escape') {
+                        this.clear();
+                        this.updateDisplay();
+                    } else if (e.key === 'Backspace') {
+                        this.delete();
+                        this.updateDisplay();
+                    }
+                });
+            }
+
+            clear() {
+                this.currentOperand = '0';
+                this.previousOperand = '';
+                this.operation = undefined;
+            }
+
+            delete() {
+                this.currentOperand = this.currentOperand.toString().slice(0, -1);
+                if (this.currentOperand === '') {
+                    this.currentOperand = '0';
+                }
+            }
+
+            appendNumber(number) {
+                if (number === '.' && this.currentOperand.includes('.')) return;
+                if (this.currentOperand === '0' && number !== '.') {
+                    this.currentOperand = number;
+                } else {
+                    this.currentOperand = this.currentOperand.toString() + number.toString();
+                }
+            }
+
+            chooseOperation(operation) {
+                if (this.currentOperand === '') return;
+                if (this.previousOperand !== '') {
+                    this.compute();
+                }
+                this.operation = operation;
+                this.previousOperand = this.currentOperand;
+                this.currentOperand = '';
+            }
+
+            compute() {
+                let computation;
+                const prev = parseFloat(this.previousOperand);
+                const current = parseFloat(this.currentOperand);
+                
+                if (isNaN(prev) || isNaN(current)) return;
+                
+                switch (this.operation) {
+                    case 'add':
+                        computation = prev + current;
+                        break;
+                    case 'subtract':
+                        computation = prev - current;
+                        break;
+                    case 'multiply':
+                        computation = prev * current;
+                        break;
+                    case 'divide':
+                        if (current === 0) {
+                            alert("Cannot divide by zero!");
+                            this.clear();
+                            return;
+                        }
+                        computation = prev / current;
+                        break;
+                    default:
+                        return;
+                }
+                
+                this.currentOperand = computation.toString();
+                this.operation = undefined;
+                this.previousOperand = '';
+            }
+
+            getDisplayNumber(number) {
+                const stringNumber = number.toString();
+                const integerDigits = parseFloat(stringNumber.split('.')[0]);
+                const decimalDigits = stringNumber.split('.')[1];
+                let integerDisplay;
+                
+                if (isNaN(integerDigits)) {
+                    integerDisplay = '';
+                } else {
+                    integerDisplay = integerDigits.toLocaleString('en', {
+                        maximumFractionDigits: 0
+                    });
+                }
+                
+                if (decimalDigits != null) {
+                    return `${integerDisplay}.${decimalDigits}`;
+                } else {
+                    return integerDisplay;
+                }
+            }
+
+            updateDisplay() {
+                this.currentOperandElement.innerText = this.getDisplayNumber(this.currentOperand);
+                
+                if (this.operation != null) {
+                    const operationSymbols = {
+                        'add': '+',
+                        'subtract': '-',
+                        'multiply': '×',
+                        'divide': '÷'
+                    };
+                    this.previousOperandElement.innerText = 
+                        `${this.getDisplayNumber(this.previousOperand)} ${operationSymbols[this.operation]}`;
+                } else {
+                    this.previousOperandElement.innerText = '';
+                }
+            }
+        }
+    </script>
+</body>
+</html>
